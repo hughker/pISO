@@ -1,6 +1,7 @@
 use action;
 use bitmap;
 use controller;
+use display;
 use displaymanager::{DisplayManager, Position, Widget, Window, WindowId};
 use error;
 use font;
@@ -56,14 +57,14 @@ enum VersionState {
 
 pub struct VersionMenu {
     pub window: WindowId,
-    state: VersionState
+    state: VersionState,
 }
 
 impl VersionMenu {
     pub fn new(disp: &mut DisplayManager) -> error::Result<VersionMenu> {
         Ok(VersionMenu {
             window: disp.add_child(Position::Normal)?,
-            state: VersionState::Unselected
+            state: VersionState::Unselected,
         })
     }
 }
@@ -71,10 +72,7 @@ impl VersionMenu {
 impl render::Render for VersionMenu {
     fn render(&self, _manager: &DisplayManager, window: &Window) -> error::Result<bitmap::Bitmap> {
         let mut base = bitmap::Bitmap::new(10, 1);
-        base.blit(
-            &font::render_text("Version"),
-            (12, 0),
-        );
+        base.blit(&font::render_text("Version"), (12, 0));
         if window.focus {
             base.blit(&bitmap::Bitmap::from_slice(font::ARROW), (0, 3));
         }
@@ -100,8 +98,7 @@ impl input::Input for VersionMenu {
     ) -> error::Result<(bool, Vec<action::Action>)> {
         match *action {
             action::Action::OpenVersion => {
-                let menu =
-                    OpenVersionMenu::new(disp)?;
+                let menu = OpenVersionMenu::new(disp)?;
                 disp.shift_focus(&menu);
                 self.state = VersionState::Selected(menu);
                 Ok((true, vec![]))
@@ -138,10 +135,8 @@ impl Widget for VersionMenu {
     }
 }
 
-
-
 struct OpenVersionMenu {
-    pub window: WindowId
+    pub window: WindowId,
 }
 
 impl OpenVersionMenu {
@@ -155,14 +150,8 @@ impl OpenVersionMenu {
 impl render::Render for OpenVersionMenu {
     fn render(&self, _manager: &DisplayManager, _window: &Window) -> error::Result<bitmap::Bitmap> {
         let mut base = bitmap::Bitmap::new(display::DISPLAY_WIDTH, display::DISPLAY_HEIGHT);
-        base.blit(
-            &font::render_text("pISO OS Version:"),
-            (6, 0),
-        );
-        base.blit(
-            &font::render_text(PISO_VERSION),
-            (15, 14),
-        );
+        base.blit(&font::render_text("pISO OS Version:"), (6, 0));
+        base.blit(&font::render_text(PISO_VERSION), (15, 14));
         Ok(base)
     }
 }

@@ -46,6 +46,10 @@ impl WifiManager {
         }))
     }
 
+    fn is_enabled(&self) -> bool {
+        self.state != WifiState::Uninitialized
+    }
+
     fn enable_wifi(&mut self) -> error::Result<()> {
         if self.state != WifiState::Uninitialized {
             return Ok(());
@@ -94,6 +98,44 @@ impl WifiManager {
         utils::run_check_output("pure-ftpd", &[PURE_FTPD_CONF])?;
 
         self.state = WifiState::Inactive;
+
+        for entry in fs::read_dir("/mnt")? {
+            let entry = entry?;
+            let path = entry.path();
+            let name = path.file_name()
+                .expect("Partition has no name")
+                .to_string_lossy()
+                .into_owned();
+            self.share_mounted_partition(&name)?;
+        }
+
+        Ok(())
+    }
+
+    fn share_mounted_partition(&mut self, name: &str) -> error::Result<()> {
+        if !self.is_enabled() {
+            return Ok(());
+        }
+
+        let path = "/user-mnt/".to_owned() + name;
+        utils::run_check_output(
+            "net",
+            &[
+                "usershare",
+                "add",
+                name,
+                &path,
+                &format!("{}:F", &self.config.user.name),
+            ],
+        )?;
+        Ok(())
+    }
+
+    fn remove_shared_partition(&mut self, name: &str) -> error::Result<()> {
+        if !self.is_enabled() {
+            return Ok(());
+        }
+        utils::run_check_output("net", &["usershare", "del", &name])?;
         Ok(())
     }
 
@@ -260,6 +302,14 @@ impl input::Input for WifiMenu {
             action::Action::CloseWifiMenu => {
                 self.state = WifiMenuState::Closed;
                 disp.shift_focus(self);
+                Ok((true, vec![]))
+            }
+            action::Action::SmbSharePartition(ref name) => {
+                self.manager.lock()?.share_mounted_partition(name)?;
+                Ok((true, vec![]))
+            }
+            action::Action::SmbRemoveShare(ref name) => {
+                self.manager.lock()?.remove_shared_partition(name)?;
                 Ok((true, vec![]))
             }
             _ => Ok((false, vec![])),
