@@ -90,7 +90,10 @@ impl WifiManager {
             &[&self.config.user.name, &self.config.user.password],
         )?;
 
+        // Setup usershare folder
         fs::create_dir_all("/var/lib/samba/usershares")?;
+        utils::run_check_output("chmod", &["1770", "/var/lib/samba/usershares"])?;
+
         utils::run_check_output("smbd", &["-D", "-s", SMB_CONF])?;
         utils::run_check_output("nmbd", &["-D", "-s", SMB_CONF])?;
 
