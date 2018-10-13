@@ -48,7 +48,7 @@ pub fn read_version() -> error::Result<PiVersion> {
     }
 }
 
-static PISO_VERSION: &'static str = include_str!("../../VERSION");
+static PISO_VERSION: &'static str = include_str!("../VERSION");
 
 enum VersionState {
     Unselected,
