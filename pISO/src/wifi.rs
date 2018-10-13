@@ -22,7 +22,6 @@ const HOSTAPD_TMP_CONF: &'static str = "/tmp/hostapd.conf";
 const WPA_SUPPLICANT_CONF: &'static str = "/etc/wpa_supplicant.conf";
 const WPA_SUPPLICANT_TMP_CONF: &'static str = "/tmp/wpa_supplicant.conf";
 const SMB_CONF: &'static str = "/etc/samba/smb.conf";
-const SMB_TMP_CONF: &'static str = "/tmp/smb.conf";
 const PURE_FTPD_CONF: &'static str = "/etc/pure-ftpd.conf";
 
 #[derive(PartialEq)]
@@ -91,9 +90,9 @@ impl WifiManager {
             &[&self.config.user.name, &self.config.user.password],
         )?;
 
-        fs::copy(SMB_CONF, SMB_TMP_CONF)?;
-        utils::run_check_output("smbd", &["-D", "-s", SMB_TMP_CONF])?;
-        utils::run_check_output("nmbd", &["-D", "-s", SMB_TMP_CONF])?;
+        fs::create_dir_all("/var/lib/samba/usershares")?;
+        utils::run_check_output("smbd", &["-D", "-s", SMB_CONF])?;
+        utils::run_check_output("nmbd", &["-D", "-s", SMB_CONF])?;
 
         utils::run_check_output("pure-ftpd", &[PURE_FTPD_CONF])?;
 
@@ -125,7 +124,8 @@ impl WifiManager {
                 "add",
                 name,
                 &path,
-                &format!("{}:F", &self.config.user.name),
+                "",
+                &format!("piso\\{}:F", &self.config.user.name),
             ],
         )?;
         Ok(())
@@ -135,7 +135,7 @@ impl WifiManager {
         if !self.is_enabled() {
             return Ok(());
         }
-        utils::run_check_output("net", &["usershare", "del", &name])?;
+        utils::run_check_output("net", &["usershare", "delete", &name])?;
         Ok(())
     }
 
