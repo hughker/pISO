@@ -72,9 +72,9 @@ impl VersionMenu {
 impl render::Render for VersionMenu {
     fn render(&self, _manager: &DisplayManager, window: &Window) -> error::Result<bitmap::Bitmap> {
         let mut base = bitmap::Bitmap::new(10, 1);
-        base.blit(&font::render_text("Version"), (12, 0));
+        base.blit(&font::render_text("Version"), (16, 0));
         if window.focus {
-            base.blit(&bitmap::Bitmap::from_slice(font::ARROW), (0, 3));
+            base.blit(&bitmap::Bitmap::from_slice(font::ARROW), (0, 0));
         }
         Ok(base)
     }
@@ -150,8 +150,7 @@ impl OpenVersionMenu {
 impl render::Render for OpenVersionMenu {
     fn render(&self, _manager: &DisplayManager, _window: &Window) -> error::Result<bitmap::Bitmap> {
         let mut base = bitmap::Bitmap::new(display::DISPLAY_WIDTH, display::DISPLAY_HEIGHT);
-        base.blit(&font::render_text("pISO OS Version:"), (6, 0));
-        base.blit(&font::render_text(PISO_VERSION), (15, 14));
+        base.blit(&font::render_text(format!("OS Version: {}", PISO_VERSION)), (6, 0));
         Ok(base)
     }
 }
